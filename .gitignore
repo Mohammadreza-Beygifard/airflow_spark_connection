@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Qodo
+.qodo
+
+# logs
+logs
+*.log
+
 # Distribution / packaging
 .Python
 build/

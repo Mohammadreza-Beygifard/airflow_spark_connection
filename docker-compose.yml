@@ -1,0 +1,106 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - airflow_net
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+      AIRFLOW__CORE__FERNET_KEY: "aNnPcgbBccqPI5E_PVPRPSXUtqHfn9dGjxBLrPPLsBw="
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__CORE__ENABLE_XCOM_PICKLING: "True"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "my-super-secret-key" 
+      AIRFLOW_UID: 50000
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./init-airflow.sh:/opt/airflow/init-airflow.sh
+      - ./data:/opt/airflow/data
+    networks:
+      - airflow_net
+    command: >
+      bash -c "
+        bash /opt/airflow/init-airflow.sh &&
+        airflow scheduler
+      "
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+      AIRFLOW__CORE__FERNET_KEY: "aNnPcgbBccqPI5E_PVPRPSXUtqHfn9dGjxBLrPPLsBw="
+      AIRFLOW__WEBSERVER__SECRET_KEY: "my-super-secret-key" 
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__CORE__ENABLE_XCOM_PICKLING: "True"
+      AIRFLOW_UID: 50000
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./init-airflow-webserver.sh:/opt/airflow/init-airflow-webserver.sh
+      - ./data:/opt/airflow/data
+    ports:
+      - "8080:8080"
+    networks:
+      - airflow_net
+    command: >
+      bash -c "
+        bash /opt/airflow/init-airflow-webserver.sh &&
+       airflow webserver
+      "
+
+
+  spark-master:
+    image: bitnami/spark:3.5.1
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"   # Spark master port for workers and spark-submit
+      - "8081:8080"   # Spark master Web UI
+    networks:
+      - airflow_net
+
+  spark-worker:
+    image: bitnami/spark:3.5.1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
+    depends_on:
+      - spark-master
+    networks:
+      - airflow_net
+    volumes:
+      - ./dags:/opt/airflow/dags/scripts/spark
+      - ./data:/opt/airflow/data
+
+networks:
+  airflow_net:
+    driver: bridge

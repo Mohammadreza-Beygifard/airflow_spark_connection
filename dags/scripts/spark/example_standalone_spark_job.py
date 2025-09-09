@@ -1,0 +1,25 @@
+from pyspark.sql import SparkSession
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import functions as F
+from scripts.spark.schema.schemas import customers_schema
+
+
+def run_pyspark_on_standalone():
+    spark: SparkSession = SparkSession.getActiveSession()
+    if spark:
+        spark.stop()
+    spark = (
+        SparkSession.builder.appName("My PySpark App")
+        .master("spark://spark-master:7077")
+        .getOrCreate()
+    )
+
+    customers_df = spark.read.csv(
+        path="file:///opt/airflow/data/customers.csv",
+        header=True,
+        schema=customers_schema,
+    )
+
+    customers_df.show(2)
+
+    spark.stop()
