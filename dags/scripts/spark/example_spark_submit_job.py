@@ -7,7 +7,7 @@ from schema.schemas import customers_schema, orders_schema
 spark: SparkSession = SparkSession.getActiveSession()
 if not spark:
     spark = SparkSession.builder.appName(
-        "Spark Submit"
+        "Spark Submit job"
     ).getOrCreate()  # As you see, there is no need to set up master URL, it is handled by the AIrflow connector
 
 
