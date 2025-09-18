@@ -2,11 +2,11 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
 from datetime import datetime
-from scripts.spark.example_standalone_spark_job import run_pyspark_on_standalone
+from scripts.spark.example_python_operator_spark_job import run_pyspark_on_standalone
 
 
 with DAG(
-    dag_id="pyspark_dag",
+    dag_id="python_operator_dag",
     start_date=datetime(2025, 1, 1),
     schedule_interval=None,  # Run on demand
     catchup=False,

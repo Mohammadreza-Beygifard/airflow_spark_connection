@@ -15,8 +15,8 @@ with DAG(
     start = EmptyOperator(task_id="start")
     spark_task = SparkSubmitOperator(
         task_id="spark_task",
-        application="/opt/airflow/dags/scripts/spark/example_spark_job.py",  # inside container
-        conn_id="spark_conn",  # spark://spark-master:7077
+        application="/opt/airflow/dags/scripts/spark/example_spark_submit_job.py",  # This is mounted inside containers
+        conn_id="spark_conn",  # gets connected to spark://spark-master:7077
         verbose=True,
     )
 

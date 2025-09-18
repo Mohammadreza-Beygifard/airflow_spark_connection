@@ -10,7 +10,9 @@ def run_pyspark_on_standalone():
         spark.stop()
     spark = (
         SparkSession.builder.appName("My PySpark App")
-        .master("spark://spark-master:7077")
+        .master(
+            "spark://spark-master:7077"
+        )  # As we use a normal python operator gere, we have to explicitly mention the spark master URL
         .getOrCreate()
     )
 
