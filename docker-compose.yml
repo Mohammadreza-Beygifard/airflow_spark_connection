@@ -17,9 +17,11 @@ services:
   airflow-scheduler:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.airflow
     depends_on:
       postgres:
+        condition: service_healthy
+      spark-master:
         condition: service_healthy
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
@@ -46,9 +48,11 @@ services:
   airflow-webserver:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.airflow
     depends_on:
       postgres:
+        condition: service_healthy
+      spark-master:
         condition: service_healthy
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
@@ -77,22 +81,33 @@ services:
 
 
   spark-master:
-    image: bitnami/spark:3.5.1
+    build:
+      context: ./spark_docker
+      dockerfile: Dockerfile
     environment:
-      - SPARK_MODE=master
+    - SPARK_NO_DAEMONIZE=1
+    command: ["/opt/spark/sbin/start-master.sh", "-h", "0.0.0.0", "-p", "7077", "--webui-port", "8080"]
     ports:
       - "7077:7077"   # Spark master port for workers and spark-submit
       - "8081:8080"   # Spark master Web UI
     networks:
       - airflow_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   spark-worker:
-    image: bitnami/spark:3.5.1
+    build:
+      context: ./spark_docker
+      dockerfile: Dockerfile
     environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=1
+    - SPARK_NO_DAEMONIZE=1
+    - SPARK_WORKER_MEMORY=2G
+    - SPARK_WORKER_CORES=1
+    command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
     depends_on:
       - spark-master
     networks:
