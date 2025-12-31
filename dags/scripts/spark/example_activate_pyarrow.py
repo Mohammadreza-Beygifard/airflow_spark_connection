@@ -26,7 +26,7 @@ start = time.perf_counter()
 pdf_without_arrow = df.toPandas()
 end = time.perf_counter()
 
-print(f"\n ****** toPandas WITHOUT Arrow: {end - start:.2f} seconds ******")
+print(f"\n ****** toPandas WITHOUT Arrow: {end - start:.2f} seconds ****** \n")
 
 # -------------------------------
 # WITH Arrow
@@ -39,7 +39,7 @@ start = time.perf_counter()
 pdf_with_arrow = df.toPandas()
 end = time.perf_counter()
 
-print(f"\n ****** toPandas WITH Arrow: {end - start:.2f} seconds ******")
+print(f"\n ****** toPandas WITH Arrow: {end - start:.2f} seconds ****** \n")
 
 # Cleanup
 spark.stop()

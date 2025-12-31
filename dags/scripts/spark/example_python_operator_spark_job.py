@@ -1,6 +1,4 @@
 from pyspark.sql import SparkSession
-from pyspark import SparkConf, SparkContext
-from pyspark.sql import functions as F
 from scripts.spark.schema.schemas import customers_schema
 
 

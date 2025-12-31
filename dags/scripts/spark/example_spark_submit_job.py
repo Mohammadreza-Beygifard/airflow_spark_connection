@@ -1,8 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.window import Window
-from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
-from schema.schemas import customers_schema, orders_schema
+from schema.schemas import customers_schema
 
 spark: SparkSession = SparkSession.getActiveSession()
 if not spark:
