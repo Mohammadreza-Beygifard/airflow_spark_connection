@@ -17,6 +17,7 @@ with DAG(
         task_id="spark_task",
         application="/opt/airflow/dags/scripts/spark/example_activate_pyarrow.py",  # This is mounted inside containers
         conn_id="spark_conn",  # gets connected to spark://spark-master:7077
+        deploy_mode="client",
         verbose=True,
     )
 

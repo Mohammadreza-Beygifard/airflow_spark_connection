@@ -24,6 +24,31 @@ airflow connections add spark_conn \
 
 If you like to create the connections manually, you can always use the Airflow administration. However, I strongly recommend you get familiar with Airflow CLI, and use the script to automate the connection creation. Doing so will enable you to set up CI/CD pipelines that bring up the airflow fully functional and you can version the scripts using git.
 
+## Using PyArrow
+
+The `spark_pyarrow_submit_dag` and `change_point_dag` are for demonstrating the effect of PyArrow whenever there is a Python Java data exchange.
+The first DAG, `spark_pyarrow_submit_dag` shows how PyArrow can make this exchange faster, while the second DAG, `change_point_dag` shows if the heavy job is the compute part, and nit the data exchange, using PyArrow is useless.
+
+When using these DAGs, pay attention to the installation of PyArrow in both Airflow and Spark containers.
+
+## Driver, master, executor (worker) and the common confusion in client mode!
+
+When you have a Python application, Spark does not support spark-submit in cluster mode, instead it requires you to run the spark-submit in client mode. This means the driver will start in the place where the spark submit is executed, in this setup, the Airflow container. However, you still need spark master, as master will coordinate the jobs and assign the workers, and of course you still need the worker, because, worker will execute the tasks. So,
+
+```bash
+Airflow container (driver)
+   |
+   | spark-submit
+   v
+Spark Master  (scheduling)
+   |
+   | assigns executors
+   v
+Spark Workers  (compute)
+```
+
+As a result, any needed dependency, should be installed in both Dockerfile.airflow and the Dockerfile in the spark_docker directory.
+
 ## How to use this repo
 
 If you want to use the stack provided in this repository to check the connections, or maybe start building on top of it, please follow these steps.
@@ -34,6 +59,12 @@ If you want to use the stack provided in this repository to check the connection
 4. Use `admin` for both username and password
 5. Trigger Dags
 6. Access Spark UI on `localhost:8081` and monitor Spark jobs.
+
+If you are changing the dependencies, docker files, etc, and need a clean install and build follow these steps.
+
+1. Run this command where docker-compose.yml file stays `docker compose down --rmi local --volumes`
+2. Then run `docker compose build --no-cache`
+3. and finally bring up the cluster with `docker compose up --force-recreate`
 
 ## License
 

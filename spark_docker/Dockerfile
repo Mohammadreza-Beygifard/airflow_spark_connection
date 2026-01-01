@@ -2,8 +2,9 @@
 FROM --platform=linux/arm64 ubuntu:22.04
 
 ARG SPARK_VERSION=3.5.0
-ARG PYARROW=15.0.0
-ARG PADNAS=2.1.4
+ARG PYARROW_VERSION=15.0.0
+ARG PADNAS_VERSION=2.1.4
+ARG RUPTURES_VERSION=1.1.10
 ARG HADOOP_PROFILE=hadoop3
 ARG SPARK_ARCHIVE=spark-${SPARK_VERSION}-bin-${HADOOP_PROFILE}
 ARG SPARK_TGZ=${SPARK_ARCHIVE}.tgz
@@ -44,8 +45,9 @@ RUN mkdir -p /opt && \
 
 # Install PyArrow and Pandas (For attendees to fill)
 RUN pip install --no-cache-dir \
-    "pyarrow==15.0.0" \
-    "pandas==2.1.4"
+    "pyarrow==${PYARROW_VERSION}" \
+    "pandas==${PADNAS_VERSION}" \
+    "ruptures==${RUPTURES_VERSION}"
 
 # Optional: set PySpark python to 3.11
 ENV PYSPARK_PYTHON=python3

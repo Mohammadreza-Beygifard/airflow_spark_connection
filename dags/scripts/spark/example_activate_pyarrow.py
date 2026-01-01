@@ -31,9 +31,10 @@ print(f"\n ****** toPandas WITHOUT Arrow: {end - start:.2f} seconds ****** \n")
 # -------------------------------
 # WITH Arrow
 # -------------------------------
+# (For attendees to fill)
 spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 spark.conf.set("spark.sql.execution.arrow.maxRecordsPerBatch", "10000")
-spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "false")
 
 start = time.perf_counter()
 pdf_with_arrow = df.toPandas()

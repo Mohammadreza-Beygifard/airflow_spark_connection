@@ -1,17 +1,28 @@
-FROM apache/airflow:2.9.3-python3.10
+FROM apache/airflow:2.9.3-python3.11
 
-# 1) Install the Spark provider using Airflow constraints (keep this as-is)
+ARG SPARK_VERSION=3.5.0
+ARG PYARROW_VERSION=15.0.0
+ARG PADNAS_VERSION=2.1.4
+ARG RUPTURES_VERSION=1.1.10
+ARG PY4J_VERSION=0.10.9.7
+
+# 1) Install the Spark provider using Airflow constraints (keep this as-is) This will already give you PySpark 3.5.1 
+# but we reinstall PySpark to ensure that we have the same spark version in both driver and worker
 RUN pip install --no-cache-dir \
     "apache-airflow-providers-apache-spark<5.0.0" \
-    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.10.txt"
+    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.11.txt"
 
-# 2) Install pyspark pinned to match your Spark cluster (DO NOT use Airflow constraints here)
+# 2) Install pyspark, PyArrow, Pandas, and Rupture pinned to match your Spark cluster (DO NOT use Airflow constraints here)
 #    Pin py4j too (Spark 3.5.x uses py4j 0.10.9.7)
 RUN pip install --no-cache-dir \
-    "pyspark==3.5.0" \
-    "py4j==0.10.9.7"
+    "pyspark==${SPARK_VERSION}" \
+    "py4j==${PY4J_VERSION}" \
+    "pyarrow==${PYARROW_VERSION}" \
+    "pandas==${PADNAS_VERSION}" \
+    "ruptures==${RUPTURES_VERSION}"
 
 USER root
+
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
     procps \
